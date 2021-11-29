@@ -1,23 +1,45 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31912.275
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PythonApplication1", "PythonApplication1.pyproj", "{97F463B1-1649-4AAC-8E04-A24B4C5AA122}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{97F463B1-1649-4AAC-8E04-A24B4C5AA122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97F463B1-1649-4AAC-8E04-A24B4C5AA122}.Release|Any CPU.ActiveCfg = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {817040FD-3A4F-42B5-8EC1-E87F8E0DB2EA}
-	EndGlobalSection
-EndGlobal
+import csv
+import numpy as np
+import math
+def loadData(path):
+    f = open(path, "r")
+    data = csv.reader(f) 
+    data = np.array(list(data))
+    data = np.delete(data, 0, 0)
+    data = np.delete(data, 0, 1)
+    np.random.shuffle(data)
+    f.close()
+    trainSet = data[:100]
+    testSet = data[100:]
+    return trainSet, testSet
+def calcDistancs(pointA, pointB, numOfFeature=4):
+    tmp = 0
+    for i in range(numOfFeature):
+        tmp += (float(pointA[i]) - float(pointB[i])) ** 2
+    return math.sqrt(tmp)
+def kNearestNeighbor(trainSet, point, k):
+    distances = []
+    for item in trainSet:
+        distances.append({
+            "label": item[-1],
+            "value": calcDistancs(item, point)
+        })
+    distances.sort(key=lambda x: x["value"])
+    labels = [item["label"] for item in distances]
+    return labels[:k]
+def findMostOccur(arr):
+    labels = set(arr)
+    ans = ""
+    maxOccur = 0
+    for label in labels:
+        num = arr.count(label)
+        if num > maxOccur:
+            maxOccur = num
+            ans = label
+    return ans
+if __name__ == "__main__":
+    trainSet, testSet = loadData("./Iris.csv")
+    for item in testSet:
+        knn = kNearestNeighbor(trainSet, item, 5)
+        answer = findMostOccur(knn)
+        print("label: {} -> predicted: {}".format(item[-1], answer))
